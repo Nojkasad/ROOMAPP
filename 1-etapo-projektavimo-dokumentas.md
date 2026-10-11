@@ -1,4 +1,4 @@
-# Namų ruošos darbų sekimo sistema su QR kodais
+# Namų ruošos darbų sekimo sistema su QR kodais (ROOMAPP)
 
 Kursinio darbo I dalis: projektavimo dokumentas
 
