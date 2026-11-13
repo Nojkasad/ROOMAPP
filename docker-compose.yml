@@ -1,0 +1,22 @@
+# Local development database. Start with:  docker compose up -d
+services:
+  db:
+    image: postgres:16
+    container_name: roomapp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: roomapp
+      POSTGRES_PASSWORD: roomapp
+      POSTGRES_DB: roomapp
+    ports:
+      - "5432:5432"
+    volumes:
+      - roomapp-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roomapp -d roomapp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  roomapp-db-data:

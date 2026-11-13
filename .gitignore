@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.log
+
+# Secrets / local config (commit only the .env.example files)
+.env
+.env.*
+!.env.example
+
+# Local Claude Code settings
+.claude/settings.local.json
