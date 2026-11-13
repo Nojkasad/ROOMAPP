@@ -2,6 +2,9 @@ node_modules/
 dist/
 *.log
 
+# Prisma client is generated from schema.prisma on npm install (postinstall)
+server/src/generated/
+
 # Secrets / local config (commit only the .env.example files)
 .env
 .env.*

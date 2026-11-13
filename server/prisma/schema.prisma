@@ -1,0 +1,113 @@
+// ROOMAPP database schema (milestone 2).
+// Timer, ScheduledNotification and PushSubscription come in a later milestone.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  MEMBER
+}
+
+// An account. No email: username + display name + password only.
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  displayName  String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  memberships Membership[]
+  events      Event[]
+}
+
+// The tenant. Everything a user can see belongs to a household they are a member of.
+model Household {
+  id         Int      @id @default(autoincrement())
+  name       String
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+
+  memberships Membership[]
+  stations    Station[]
+}
+
+// Join table between User and Household (many-to-many) + the user's role there.
+// The pair (userId, householdId) is the primary key, so nobody can join twice.
+model Membership {
+  userId      Int
+  householdId Int
+  role        Role     @default(MEMBER)
+  joinedAt    DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  @@id([userId, householdId])
+  @@index([householdId])
+}
+
+// One QR-coded spot: washing machine, dishwasher, plant...
+model Station {
+  id             Int     @id @default(autoincrement())
+  householdId    Int
+  name           String
+  icon           String?
+  publicSlug     String  @unique // what the QR code URL contains: /s/<publicSlug>
+  currentStateId Int?    @unique // null only while the station is being created
+  version        Int     @default(0) // optimistic lock: +1 on every state change
+
+  household    Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  states       State[]   @relation("StationStates")
+  currentState State?    @relation("StationCurrentState", fields: [currentStateId], references: [id], onDelete: SetNull)
+  events       Event[]
+
+  @@index([householdId])
+}
+
+// One step of a station's cycle. nextStateId points to the following step;
+// the last step points back to the first, which closes the loop.
+model State {
+  id          Int    @id @default(autoincrement())
+  stationId   Int
+  name        String
+  order       Int
+  nextStateId Int?   @unique // null only while the cycle is being created
+
+  station   Station  @relation("StationStates", fields: [stationId], references: [id], onDelete: Cascade)
+  nextState State?   @relation("StateCycle", fields: [nextStateId], references: [id], onDelete: SetNull)
+  prevState State?   @relation("StateCycle")
+  currentOf Station? @relation("StationCurrentState")
+
+  eventsFrom Event[] @relation("EventFrom")
+  eventsTo   Event[] @relation("EventTo")
+
+  @@unique([stationId, order])
+}
+
+// One tap: who moved which station from which state to which, and when.
+// Source of history (and later stats). undone = true means it was reverted.
+model Event {
+  id          Int      @id @default(autoincrement())
+  stationId   Int
+  userId      Int
+  fromStateId Int
+  toStateId   Int
+  createdAt   DateTime @default(now())
+  undone      Boolean  @default(false)
+
+  station   Station @relation(fields: [stationId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromState State   @relation("EventFrom", fields: [fromStateId], references: [id], onDelete: Cascade)
+  toState   State   @relation("EventTo", fields: [toStateId], references: [id], onDelete: Cascade)
+
+  @@index([stationId, createdAt])
+  @@index([userId])
+}

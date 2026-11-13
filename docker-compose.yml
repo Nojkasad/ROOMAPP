@@ -9,7 +9,8 @@ services:
       POSTGRES_PASSWORD: roomapp
       POSTGRES_DB: roomapp
     ports:
-      - "5432:5432"
+      # 5433 on the PC, because a Windows-installed Postgres often already uses 5432
+      - "5433:5432"
     volumes:
       - roomapp-db-data:/var/lib/postgresql/data
     healthcheck:
