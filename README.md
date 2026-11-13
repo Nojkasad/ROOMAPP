@@ -2,7 +2,33 @@
 
 Kursinio darbo projektas. Projektavimo dokumentas: [1-etapo-projektavimo-dokumentas.md](1-etapo-projektavimo-dokumentas.md).
 
-> Paleidimo instrukcijos, reikalingi įrankiai ir demonstravimo žingsniai bus pridėti II etape.
+## Paleidimas (kūrimo aplinka)
+
+**Reikia:** Node.js ≥ 20.19 (rekomenduojama 22 LTS), Docker Desktop.
+
+```bash
+docker compose up -d
+```
+
+```bash
+npm install
+```
+
+Nukopijuoti `server/.env.example` į `server/.env` (numatytos reikšmės tinka vietinei aplinkai).
+
+Paleisti dviejuose terminaluose:
+
+```bash
+npm run dev:server
+```
+
+```bash
+npm run dev:client
+```
+
+Atidaryti <http://localhost:5173> — turi būti matyti „API: ok“. API sveikatos patikra: <http://localhost:3000/api/health>.
+
+> Pilnos paleidimo, testavimo ir demonstravimo instrukcijos bus papildytos II etapo pabaigoje.
 
 ## Darbo eiga (šakos)
 
