@@ -26,6 +26,21 @@ model User {
 
   memberships Membership[]
   events      Event[]
+  sessions    Session[]
+}
+
+// A login. The browser holds a random token in an httpOnly cookie;
+// the database stores only its SHA-256 hash, so a leaked database can't be used to log in.
+// Deleting the row = that login is over (logout, or "log out everywhere").
+model Session {
+  id        String   @id // SHA-256 hash of the cookie token (hex)
+  userId    Int
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // The tenant. Everything a user can see belongs to a household they are a member of.
