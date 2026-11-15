@@ -2,6 +2,7 @@
 // Run with: npm run db:seed   (safe to run again: it replaces only the demo data)
 import bcrypt from 'bcrypt';
 import { prisma } from '../src/db.js';
+import { createStationWithCycle } from '../src/services/stations.js'; // same code the API uses
 
 const DEMO_PASSWORD = 'demo1234';
 const DEMO_USERS = [
@@ -11,30 +12,6 @@ const DEMO_USERS = [
 const DEMO_INVITE_CODE = 'DEMO2026';
 
 const minutesAgo = (m) => new Date(Date.now() - m * 60_000);
-
-// Creates a station and its state cycle inside a transaction.
-// Order matters because Station and State point at each other:
-//   1. station (no current state yet)
-//   2. states (no next pointer yet)
-//   3. link each state to the next one, last -> first closes the cycle
-//   4. set the station's current state
-async function createStationWithCycle(tx, { householdId, name, icon, publicSlug, stateNames, currentIndex = 0 }) {
-  const station = await tx.station.create({ data: { householdId, name, icon, publicSlug } });
-
-  const states = [];
-  for (const [i, stateName] of stateNames.entries()) {
-    states.push(await tx.state.create({ data: { stationId: station.id, name: stateName, order: i + 1 } }));
-  }
-
-  for (const [i, state] of states.entries()) {
-    const next = states[(i + 1) % states.length]; // % wraps the last one back to index 0
-    await tx.state.update({ where: { id: state.id }, data: { nextStateId: next.id } });
-  }
-
-  await tx.station.update({ where: { id: station.id }, data: { currentStateId: states[currentIndex].id } });
-
-  return { station, states };
-}
 
 // Records a state change the same way the app will: an event + station moves on + version + 1.
 async function advance(tx, { station, from, to, user, at }) {

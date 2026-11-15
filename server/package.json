@@ -21,7 +21,8 @@
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "express": "^5.3.0",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "prisma": "^7.10.1"
