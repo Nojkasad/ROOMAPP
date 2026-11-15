@@ -2,6 +2,8 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import { authenticate } from './middleware/auth.js';
 import { authRouter } from './routes/auth.js';
+import { householdsRouter } from './routes/households.js';
+import { invitesRouter } from './routes/invites.js';
 
 // Builds the Express app without starting it.
 // index.js calls listen(); tests (stage 7) import createApp() directly with Supertest.
@@ -19,6 +21,8 @@ export function createApp() {
   });
 
   app.use('/api/auth', authRouter);
+  app.use('/api/households', householdsRouter);
+  app.use('/api/invites', invitesRouter);
 
   // Any /api route that didn't match above.
   app.use((req, res) => {
