@@ -8,6 +8,7 @@ import {
   getHouseholdDetails,
   regenerateInviteCode,
 } from '../services/households.js';
+import { createStation, listStations, listHouseholdEvents } from '../services/stations.js';
 
 // Mounted at /api/households in app.js.
 export const householdsRouter = Router();
@@ -38,4 +39,18 @@ householdsRouter.get('/:householdId', requireMembership, async (req, res) => {
 // New invite code; old codes and QR photos stop working. OWNER only.
 householdsRouter.post('/:householdId/invite-code', requireMembership, requireRole('OWNER'), async (req, res) => {
   res.json(await regenerateInviteCode(req.membership.householdId));
+});
+
+// Stations of a household. Body for POST: { name, states: ["Nešvarūs", "Plauna", "Švarūs"], icon? }
+householdsRouter.get('/:householdId/stations', requireMembership, async (req, res) => {
+  res.json({ stations: await listStations(req.membership.householdId) });
+});
+
+householdsRouter.post('/:householdId/stations', requireMembership, async (req, res) => {
+  res.status(201).json({ station: await createStation(req.membership.householdId, req.body) });
+});
+
+// History: last 20 changes in the household.
+householdsRouter.get('/:householdId/events', requireMembership, async (req, res) => {
+  res.json({ events: await listHouseholdEvents(req.membership.householdId) });
 });
